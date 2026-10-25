@@ -6,7 +6,7 @@ import './avatar-styles.css';
 
 type Mode = 'عرض هولوجرامي مباشر' | 'معرض تفاعلي' | 'وضع الواقع الافتراضي';
 const OFFICE_IMAGE = '/office-tea-scene.webp';
-const NARRATION_SCRIPT = 'أهلًا بك في تجربة حارس المجد المصري. أنا شخصية رقمية ببدلة رسمية وطربوش مصري، داخل مكتب هادئ مع كأس شاي. اسحب المشهد لأدور، واستخدم عجلة الفأرة أو إصبعين للتقريب. زر إعادة الضبط يعيد زاوية العرض، ويمكنك دخول الواقع الافتراضي إذا كان جهازك يدعمه.';
+const NARRATION_SCRIPT = 'أهلًا بك. أنا مستر نقراشي، المدرّس الافتراضي المصري داخل حارس المجد. مهمتي أن أشرح البرمجة خطوة بخطوة، وأحوّل كل فكرة في بايثون إلى مثال بصري بسيط. في هذا الدرس أشرح التكرار: كلمة for تعني أنني أمرّ على كل طالب واحدًا تلو الآخر، ثم تطبع print اسم الطالب على الشاشة. اسحب المجسم لتشاهدني من كل زاوية، واضغط الصوت لإعادة الشرح.';
 
 function AvatarStage({
   onReady,
@@ -589,12 +589,12 @@ export default function App() {
             </div>
 
               <div className={`hero-stage office-mode ${ready ? 'stage-ready' : ''}`} id="avatar-viewer">
-              <div className={`speech-hologram ${isSpeaking && !speechPaused ? 'is-active' : ''}`} aria-live="polite"><span className="holo-label">شرح مباشر · PYTHON</span><strong>{isSpeaking && !speechPaused ? 'الفكرة تتحول إلى صورة' : 'ابدأ الشرح لرؤية الهولوجرام'}</strong><div className="holo-code"><i>for</i> student <b>in</b> class:<br /><em>print</em>(student)</div><div className="holo-bars"><i /><i /><i /><i /><i /><i /></div></div><div className="stage-orbit orbit-a" /><div className="stage-orbit orbit-b" />
+              <div className={`speech-hologram ${isSpeaking && !speechPaused ? 'is-active' : ''}`} aria-live="polite"><span className="holo-label">مستر نقراشي · شرح مباشر</span><strong>{isSpeaking && !speechPaused ? 'أنا أشرح التكرار في Python' : 'اضغط الصوت لأعرفك بي وأشرح لك'}</strong><p className="holo-explainer">{isSpeaking && !speechPaused ? 'for تمرّ على كل عنصر، و print تعرض النتيجة.' : 'مدرّسك الافتراضي يحوّل الكود إلى صورة.'}</p><div className="holo-code"><i>for</i> student <b>in</b> class:<br /><em>print</em>(student)</div><div className="holo-bars"><i /><i /><i /><i /><i /><i /></div></div><div className="stage-orbit orbit-a" /><div className="stage-orbit orbit-b" />
               <div className="stage-diamond" />
               <div className="generated-portrait office-photo" aria-hidden="true"><img src={OFFICE_IMAGE} alt="" /><div className="portrait-blend" /></div>
               <div className="scanline scanline-main" /><div className="scanline scanline-soft" />
               <AvatarStage onReady={setReady} onProgress={setLoadProgress} onRotation={setRotating} onVrReady={onVrReady} onVrUnsupported={onVrUnsupported} onVrAvailable={onVrAvailable} onVrExited={onVrExited} onLoadError={onLoadError} autoRotate={autoRotate} speechActive={isSpeaking && !speechPaused} />
-              <div className="stage-edge edge-top"><span className="corner-tick" /> <span>EGYPTIAN GUARDIAN <b>•</b> INTERACTIVE AVATAR</span></div>
+              <div className="stage-edge edge-top"><span className="corner-tick" /> <span>MISTER NOQRASHI <b>•</b> PYTHON TEACHER</span></div>
               <div className="stage-edge edge-bottom"><span>النسخة الرقمية <b>01 / 04</b></span><span className="stage-lock">◉ اتصال آمن</span></div>
               <div className="side-measure measure-left"><i /><i /><i /><i /><i /><span>١٩٠ سم</span></div>
               <div className="stage-float-tag tag-top"><span className="tag-dot" /> القامة <b>٢٠ عاماً · ١٩٠ سم</b></div>
