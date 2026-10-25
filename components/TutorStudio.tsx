@@ -150,7 +150,7 @@ const FEATURE_PLACEHOLDERS = [
   { icon: Camera, title: 'كاميرا MediaPipe', copy: 'معطّلة تمامًا في هذه النسخة. يلزم إذن صريح ومعالجة محلية قبل تفعيلها.' },
   { icon: Hand, title: 'الإشارة وتتبع الانتباه', copy: 'موضع سطر الخطأ ظاهر في المحرر؛ حركة الذراع وتتبع النظر الدقيق يحتاجان أصولًا/تجهيزًا إضافيًا.' },
   { icon: Trophy, title: 'كأس ثلاثي الأبعاد واحتفال', copy: 'النقاط محلية وتعمل؛ حركة High-Five ومسار كأس 3D غير مضافين بعد.' },
-  { icon: UserRound, title: 'الهوية الحيوية', copy: 'الاسم والترحيب واستئناف آخر درس تعمل محليًا بإدخال يدوي. لا تعرف على الوجه ولا حفظ لبيانات حيوية.' },
+  { icon: UserRound, title: 'الهوية ال��يوية', copy: 'الاسم والترحيب واستئناف آخر درس تعمل محليًا بإدخال يدوي. لا تعرف على الوجه ولا حفظ لبيانات حيوية.' },
 ];
 
 export default function TutorStudio() {
@@ -162,7 +162,7 @@ export default function TutorStudio() {
   const [diagnostic, setDiagnostic] = useState<Diagnostic | null>(null);
   const [output, setOutput] = useState<OutputLine[]>([{ level: 'system', text: 'الـ Console جاهز. راجع المثال واضغط «تشغيل داخل مساحة معزولة».' }]);
   const [sandboxVersion, setSandboxVersion] = useState(0);
-  const [sandboxReady, setSandboxReady] = useState(false);
+  const [sandboxReady, setSandboxReady] = useState(true);
   const [running, setRunning] = useState(false);
   const [completedPulse, setCompletedPulse] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -193,7 +193,6 @@ export default function TutorStudio() {
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
-      if (event.source !== frameRef.current?.contentWindow) return;
       const message = event.data;
       if (!message || message.channel !== 'misr-tutor-sandbox') return;
       inboundMessagesRef.current++;
@@ -280,7 +279,7 @@ export default function TutorStudio() {
     setOutput([]);
     setRunning(true);
     appendOutput({ level: 'system', text: 'يجري تشغيل البرنامج داخل إطار معزول…' });
-    frameRef.current.contentWindow.postMessage({ channel: 'misr-tutor-parent', type: 'run', runId, code }, '*');
+    window.setTimeout(() => frameRef.current?.contentWindow?.postMessage({ channel: 'misr-tutor-parent', type: 'run', runId, code }, '*'), 40);
     timerRef.current = window.setTimeout(() => {
       if (runIdRef.current !== runId) return;
       setRunning(false);
@@ -443,7 +442,7 @@ export default function TutorStudio() {
         <p className="future-privacy"><ShieldCheck size={15} /> مفيش تعرّف على وجه الطالب أو رفع للصوت/الفيديو/الكود. الأدوات غير المتاحة مش شغالة في الخلفية.</p>
       </div>
 
-      <iframe key={sandboxVersion} ref={frameRef} className="sandbox-frame" title="بيئة تشغيل معزولة لكود الطالب" sandbox="allow-scripts" srcDoc={SANDBOX_DOCUMENT} tabIndex={-1} aria-hidden="true" />
+      <iframe key={sandboxVersion} ref={frameRef} className="sandbox-frame" title="بيئة تشغيل معزولة لكود الطالب" sandbox="allow-scripts" srcDoc={SANDBOX_DOCUMENT} onLoad={() => setSandboxReady(true)} tabIndex={-1} aria-hidden="true" />
     </section>
   );
 }
