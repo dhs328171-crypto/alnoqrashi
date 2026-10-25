@@ -481,6 +481,8 @@ export default function App() {
   const [speechPaused, setSpeechPaused] = useState(false);
   const vrCallback = useRef<() => void>(() => undefined);
   const toastTimer = useRef<number | undefined>(undefined);
+  const speechQueueRef = useRef<string[]>([]);
+  const speechIndexRef = useRef(0);
   const onVrReady = useCallback((begin: () => void) => { vrCallback.current = begin; }, []);
   const onVrUnsupported = useCallback(() => { setVrAvailable(false); setVrFailed(true); }, []);
   const onVrAvailable = useCallback((available: boolean) => { setVrAvailable(available); if (available) setVrFailed(false); }, []);
@@ -524,13 +526,15 @@ export default function App() {
     setAutoRotate(true);
   };
   const stopNarration = () => {
+    speechQueueRef.current = [];
+    speechIndexRef.current = 0;
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     setIsSpeaking(false);
     setSpeechPaused(false);
   };
   const toggleNarration = () => {
     if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
-      showToast('الصوت غير مدعوم في هذا المتصفح. نص الشرح متاح أسفل الصفحة.');
+      showToast('الصوت غير مدعوم في هذا المتصفح. جرّب Chrome أو Edge على اللابتوب.');
       return;
     }
     const engine = window.speechSynthesis;
@@ -540,23 +544,30 @@ export default function App() {
       return;
     }
     engine.cancel();
-    const utterance = new SpeechSynthesisUtterance(NARRATION_SCRIPT);
-    utterance.lang = 'ar-EG';
-    utterance.rate = 0.94;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    const voices = engine.getVoices();
-    const arabicVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith('ar-eg'))
-      ?? voices.find((voice) => voice.lang.toLowerCase().startsWith('ar'));
-    if (arabicVoice) utterance.voice = arabicVoice;
-    utterance.onstart = () => { setIsSpeaking(true); setSpeechPaused(false); };
-    utterance.onend = () => { setIsSpeaking(false); setSpeechPaused(false); };
-    utterance.onerror = (event) => {
-      setIsSpeaking(false); setSpeechPaused(false);
-      if (event.error !== 'canceled' && event.error !== 'interrupted') showToast('تعذر تشغيل الصوت؛ يمكنك قراءة نص الشرح أسفل الصفحة.');
+    speechQueueRef.current = NARRATION_SCRIPT.split(/(?<=[.!؟])\\s+/).filter(Boolean);
+    speechIndexRef.current = 0;
+    const speakNext = () => {
+      const text = speechQueueRef.current[speechIndexRef.current++];
+      if (!text) { setIsSpeaking(false); setSpeechPaused(false); return; }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ar-EG';
+      utterance.rate = 0.86;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      const voices = engine.getVoices();
+      const arabicVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith('ar-eg'))
+        ?? voices.find((voice) => voice.lang.toLowerCase().startsWith('ar'));
+      if (arabicVoice) utterance.voice = arabicVoice;
+      utterance.onstart = () => { setIsSpeaking(true); setSpeechPaused(false); };
+      utterance.onend = speakNext;
+      utterance.onerror = (event) => {
+        setIsSpeaking(false); setSpeechPaused(false);
+        if (event.error !== 'canceled' && event.error !== 'interrupted') showToast('تعذر تشغيل الصوت. جرّب Chrome أو Edge وتأكد أن صوت الجهاز غير مكتوم.');
+      };
+      engine.speak(utterance);
     };
     setIsSpeaking(true);
-    engine.speak(utterance);
+    window.setTimeout(speakNext, 80);
   };
   return (
     <div className="site-shell avatar-only" dir="rtl">
@@ -589,7 +600,7 @@ export default function App() {
             </div>
 
               <div className={`hero-stage office-mode ${ready ? 'stage-ready' : ''}`} id="avatar-viewer">
-              <div className={`speech-hologram ${isSpeaking && !speechPaused ? 'is-active' : ''}`} aria-live="polite"><span className="holo-label">مستر نقراشي · شرح مباشر</span><strong>{isSpeaking && !speechPaused ? 'أنا أشرح التكرار في Python' : 'اضغط الصوت لأعرفك بي وأشرح لك'}</strong><p className="holo-explainer">{isSpeaking && !speechPaused ? 'for تمرّ على كل عنصر، و print تعرض النتيجة.' : 'مدرّسك الافتراضي يحوّل الكود إلى صورة.'}</p><div className="holo-code"><i>for</i> student <b>in</b> class:<br /><em>print</em>(student)</div><div className="holo-bars"><i /><i /><i /><i /><i /><i /></div></div><div className="stage-orbit orbit-a" /><div className="stage-orbit orbit-b" />
+              <div className={`speech-hologram ${isSpeaking && !speechPaused ? 'is-active' : ''}`} aria-live="polite"><span className="holo-label">مستر ��قراشي · شرح مباشر</span><strong>{isSpeaking && !speechPaused ? 'أنا أشرح التكرار في Python' : 'اضغط الصوت لأعرفك بي وأشرح لك'}</strong><p className="holo-explainer">{isSpeaking && !speechPaused ? 'for تمرّ على كل عنصر، و print تعرض النتيجة.' : 'مدرّسك الافتراضي يحوّل الكود إلى صورة.'}</p><div className="holo-code"><i>for</i> student <b>in</b> class:<br /><em>print</em>(student)</div><div className="holo-bars"><i /><i /><i /><i /><i /><i /></div></div><div className="stage-orbit orbit-a" /><div className="stage-orbit orbit-b" />
               <div className="stage-diamond" />
               <div className="generated-portrait office-photo" aria-hidden="true"><img src={OFFICE_IMAGE} alt="" /><div className="portrait-blend" /></div>
               <div className="scanline scanline-main" /><div className="scanline scanline-soft" />
