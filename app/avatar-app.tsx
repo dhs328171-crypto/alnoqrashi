@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ArrowDown, ArrowLeft, AudioLines, Expand, Eye, Focus, Maximize2, Move3D, Pause, Play, RotateCcw, ScanLine, Sparkles, Volume2, X } from 'lucide-react';
-import TutorStudio from '@/components/TutorStudio';
 import './avatar-styles.css';
 
 type Mode = 'عرض هولوجرامي مباشر' | 'معرض تفاعلي' | 'وضع الواقع الافتراضي';
@@ -19,6 +18,7 @@ function AvatarStage({
   onVrExited,
   onLoadError,
   autoRotate,
+  speechActive,
 }: {
   onReady: (ready: boolean) => void;
   onProgress: (progress: number) => void;
@@ -29,6 +29,7 @@ function AvatarStage({
   onVrExited: () => void;
   onLoadError: () => void;
   autoRotate: boolean;
+  speechActive: boolean;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const rotateRef = useRef(autoRotate);
@@ -402,7 +403,10 @@ function AvatarStage({
         fallbackAvatar.rotation.x = Math.sin(elapsed * 0.55) * 0.008;
       }
       ringGroup.rotation.y = Math.sin(elapsed * 0.24) * 0.045;
-      cyanLight.intensity = 27 + Math.sin(elapsed * 1.4) * 5;
+      ringGroup.visible = speechActive;
+      particles.visible = speechActive;
+      floorGrid.visible = speechActive;
+      cyanLight.intensity = speechActive ? 38 + Math.sin(elapsed * 5.2) * 12 : 27 + Math.sin(elapsed * 1.4) * 5;
       const positions = particles.geometry.getAttribute('position') as THREE.BufferAttribute;
       for (let i = 0; i < particleCount; i++) {
         let y = positions.getY(i) + particleSpeeds[i];
@@ -457,7 +461,7 @@ function AvatarStage({
       renderer.dispose();
       host.removeChild(renderer.domElement);
     };
-  }, [onReady, onProgress, onRotation, onVrReady, onVrUnsupported, onVrAvailable, onVrExited, onLoadError]);
+  }, [onReady, onProgress, onRotation, onVrReady, onVrUnsupported, onVrAvailable, onVrExited, onLoadError, speechActive]);
   return <div className="stage-canvas" ref={hostRef} aria-label="مجسم ثلاثي الأبعاد تفاعلي لشاب مصري يرتدي بدلة رسمية وطربوشاً" />;
 }
 
@@ -555,7 +559,7 @@ export default function App() {
     engine.speak(utterance);
   };
   return (
-    <div className="site-shell" dir="rtl">
+    <div className="site-shell avatar-only" dir="rtl">
       <div className="ambient ambient-one" /><div className="ambient ambient-two" />
       <header className="topbar">
         <a className="brand" href="#home" aria-label="حارس المجد المصري — الصفحة الرئيسية">
@@ -585,11 +589,11 @@ export default function App() {
             </div>
 
               <div className={`hero-stage office-mode ${ready ? 'stage-ready' : ''}`} id="avatar-viewer">
-              <div className="stage-orbit orbit-a" /><div className="stage-orbit orbit-b" />
+              <div className={`speech-hologram ${isSpeaking && !speechPaused ? 'is-active' : ''}`} aria-live="polite"><span className="holo-label">شرح مباشر · PYTHON</span><strong>{isSpeaking && !speechPaused ? 'الفكرة تتحول إلى صورة' : 'ابدأ الشرح لرؤية الهولوجرام'}</strong><div className="holo-code"><i>for</i> student <b>in</b> class:<br /><em>print</em>(student)</div><div className="holo-bars"><i /><i /><i /><i /><i /><i /></div></div><div className="stage-orbit orbit-a" /><div className="stage-orbit orbit-b" />
               <div className="stage-diamond" />
               <div className="generated-portrait office-photo" aria-hidden="true"><img src={OFFICE_IMAGE} alt="" /><div className="portrait-blend" /></div>
               <div className="scanline scanline-main" /><div className="scanline scanline-soft" />
-              <AvatarStage onReady={setReady} onProgress={setLoadProgress} onRotation={setRotating} onVrReady={onVrReady} onVrUnsupported={onVrUnsupported} onVrAvailable={onVrAvailable} onVrExited={onVrExited} onLoadError={onLoadError} autoRotate={autoRotate} />
+              <AvatarStage onReady={setReady} onProgress={setLoadProgress} onRotation={setRotating} onVrReady={onVrReady} onVrUnsupported={onVrUnsupported} onVrAvailable={onVrAvailable} onVrExited={onVrExited} onLoadError={onLoadError} autoRotate={autoRotate} speechActive={isSpeaking && !speechPaused} />
               <div className="stage-edge edge-top"><span className="corner-tick" /> <span>EGYPTIAN GUARDIAN <b>•</b> INTERACTIVE AVATAR</span></div>
               <div className="stage-edge edge-bottom"><span>النسخة الرقمية <b>01 / 04</b></span><span className="stage-lock">◉ اتصال آمن</span></div>
               <div className="side-measure measure-left"><i /><i /><i /><i /><i /><span>١٩٠ سم</span></div>
@@ -613,8 +617,6 @@ export default function App() {
           <div className="hero-footer"><div className="scroll-cue"><span /> استكشف التجربة <ArrowDown size={14} /></div><span className="footer-index">30° 02′ N&nbsp;&nbsp; 31° 14′ E <i /> القاهرة ٢٠٢٦</span></div>
         </section>
 
-        <TutorStudio />
-
         <section className="below-fold" id="story">
           <div className="below-heading"><span>01 / إرثٌ ينبض بالحياة</span><h2>أكثر من مجرد مجسّم.<br /><i>شعورٌ كامل بالحضور.</i></h2><p>حضورٌ رقمي بتفاصيل دقيقة؛ من انحناءة الكتف إلى انعكاس الضوء على الطربوش. تجوّل، أمعن النظر، واستكشف الحكاية بنفسك.</p></div>
           <div className="story-cards"><article><span className="card-num">٠١</span><Move3D /><h3>انظر من كل زاوية</h3><p>اسحب بحرية حول الشخصية، واقترب من التفاصيل كأنها أمامك.</p></article><article><span className="card-num">٠٢</span><AudioLines /><h3>وقفةٌ تحكي قصة</h3><p>حركة هادئة وتفاصيل حيّة تعبّر عن الثقة والقوة الأصيلة.</p></article><article><span className="card-num">٠٣</span><span className="card-vr">VR</span><h3>ادخل العالم بنفسك</h3><p>انتقل إلى الواقع الافتراضي حيث يتحول المشهد إلى مساحة تعيشها.</p></article></div>
@@ -631,7 +633,7 @@ export default function App() {
       <button className="scroll-top" aria-label="العودة لأعلى" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}><Play size={14} fill="currentColor" /></button>
       {vrRequested && vrFailed && <div className="xr-info" role="dialog" aria-modal="true"><div className="xr-icon"><span>VR</span></div><span className="xr-kicker">استكشاف غامر</span><h2>الواقع الافتراضي غير متاح هنا بعد.</h2><p>يعمل WebXR عبر متصفح متوافق ونظارة واقع افتراضي واتصال آمن. يمكنك استكشاف المجسم الآن بالسحب والتقريب على شاشتك.</p><div className="xr-status"><i /> التجربة التفاعلية ثلاثية الأبعاد متاحة الآن</div><button onClick={() => { setVrRequested(false); setVrFailed(false); setMode('عرض هولوجرامي مباشر'); }}><span>متابعة في العرض ثلاثي الأبعاد</span><ArrowLeft size={17} /></button><button className="xr-dismiss" aria-label="إغلاق" onClick={() => { setVrRequested(false); setVrFailed(false); }}><X size={16} /></button></div>}
       <div className="sr-only" aria-live="polite">{mode}</div>
-      <footer className="site-footer"><span>حارس المجد المصري <b>•</b> تجربة رقمية أصلية</span><span>صنع بإلهامٍ من تاريخٍ لا يغيب <span className="eye-glyph">𓂀</span></span></footer>
+
     </div>
   );
 }
