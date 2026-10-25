@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>مستر نقراشي | معلم البرمجة الهولوجرام</title>
+  <meta name="description" content="منصة تعليمية بمجسم هولوجرام ثلاثي الأبعاد بيعلّمك بايثون بالصوت وحركات اليد.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <canvas id="matrix" aria-hidden="true"></canvas>
+
+  <!-- شاشة الإقلاع: لازم ضغطة من الطالب عشان المتصفح يسمح بالصوت -->
+  <div id="boot" class="boot" role="dialog" aria-labelledby="boot-title">
+    <div class="boot-card glass">
+      <div class="boot-logo" aria-hidden="true">⬡</div>
+      <h1 id="boot-title" class="neon-title">مستر نقراشي</h1>
+      <p class="boot-sub">معلم البرمجة الهولوجرام · Python Academy</p>
+      <div class="progress"><div id="boot-bar" class="progress-bar"></div></div>
+      <p id="boot-label" class="boot-label">تهيئة النظام...</p>
+      <button id="boot-start" class="btn primary big" disabled data-sfx>ابدأ الحصة 🚀</button>
+      <p class="boot-note">الصوت والمايك والكاميرا اختياريين، وبتشغّلهم بنفسك من الأزرار جوه المنصة.</p>
+    </div>
+  </div>
+
+  <div class="app">
+    <header class="topbar glass">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">⬡</span>
+        <div>
+          <div class="brand-name">مستر نقراشي</div>
+          <div class="brand-tag">PYTHON · HOLOGRAM ACADEMY</div>
+        </div>
+      </div>
+      <div class="xp" aria-label="تقدمك">
+        <div class="xp-level"><small>المستوى</small><b id="xp-level">1</b></div>
+        <div class="xp-main">
+          <div class="xp-top"><span id="xp-rank">مبتدئ</span><span id="xp-points">0 XP</span></div>
+          <div class="xp-track"><div id="xp-bar" class="xp-bar"></div></div>
+        </div>
+        <div class="xp-streak" title="أيام متتالية"><span aria-hidden="true">🔥</span><b id="xp-streak">0</b></div>
+      </div>
+      <ul class="status-row" aria-label="حالة الأنظمة">
+        <li id="st-gl" class="chip" data-state="idle">WebGL</li>
+        <li id="st-hand" class="chip" data-state="idle">اليد</li>
+        <li id="st-mic" class="chip" data-state="idle">المايك</li>
+        <li id="st-py" class="chip" data-state="idle">Python</li>
+      </ul>
+    </header>
+
+    <main class="grid">
+      <!-- يمين: الدرس والشات والكود -->
+      <section class="panel glass panel-lesson" aria-label="الدرس">
+        <h2 class="panel-title">المنهج</h2>
+        <div id="lesson-list" class="lesson-list" role="tablist"></div>
+
+        <div id="chat-log" class="chat-log" aria-live="polite"></div>
+
+        <form id="chat-form" class="chat-form" autocomplete="off">
+          <label for="chat-input" class="sr-only">اسأل مستر نقراشي</label>
+          <input id="chat-input" type="text" placeholder="اسأل مستر نقراشي... (مثلاً: يعني إيه متغير؟)">
+          <button class="btn" type="submit" data-sfx>إرسال</button>
+        </form>
+
+        <div class="editor-head">
+          <span class="panel-title small">محرر بايثون</span>
+          <span class="hint-text">Ctrl + Enter للتشغيل</span>
+        </div>
+        <textarea id="code" class="code" dir="ltr" spellcheck="false" aria-label="محرر كود بايثون"></textarea>
+        <div class="btn-row">
+          <button id="btn-run" class="btn primary" data-sfx>شغّل ▶</button>
+          <button id="btn-explain" class="btn" data-sfx>اشرح الكود 🔍</button>
+          <button id="btn-hint" class="btn" data-sfx>تلميح 💡</button>
+          <button id="btn-solution" class="btn" data-sfx>الحل ✅</button>
+          <button id="btn-repeat" class="btn" data-sfx>أعد الشرح 🔁</button>
+        </div>
+        <pre id="console" class="console" dir="ltr" aria-live="polite">&gt;&gt;&gt; الناتج هيظهر هنا</pre>
+      </section>
+
+      <!-- النص: المسرح -->
+      <section class="stage glass" aria-label="مستر نقراشي">
+        <canvas id="hologram-canvas"></canvas>
+        <div class="hud hud-tl">SYS // ONLINE</div>
+        <div class="hud hud-tr" id="mood-chip">MOOD // IDLE</div>
+        <div class="hud hud-bl">HOLO-LINK 01</div>
+        <div class="hud hud-br" id="stage-status">READY</div>
+
+        <div class="stage-controls">
+          <button id="btn-mic" class="btn round" title="اتكلم مع مستر نقراشي" data-sfx>🎤</button>
+          <button id="btn-cam" class="btn round" title="تشغيل تتبع اليد" data-sfx>🖐️</button>
+          <button id="btn-voice" class="btn round active" title="صوت مستر نقراشي" data-sfx>🔊</button>
+        </div>
+
+        <div class="subtitle-wrap"><p id="subtitle" class="subtitle"></p></div>
+      </section>
+
+      <!-- شمال: الحساسات -->
+      <aside class="panel glass panel-sensors" aria-label="الحساسات">
+        <h2 class="panel-title">رادار اليد</h2>
+        <div class="cam-box">
+          <video id="cam" playsinline muted></video>
+          <canvas id="cam-overlay"></canvas>
+          <div id="cam-state" class="cam-state">الكاميرا مقفولة</div>
+        </div>
+
+        <ul class="gesture-list">
+          <li data-gesture="open"><span>✋</span> كف مفتوح <small>مستر نقراشي يبصّلك + يسلّم</small></li>
+          <li data-gesture="fist"><span>✊</span> قبضة <small>حرّك إيدك يمين وشمال لتدوير المجسم</small></li>
+          <li data-gesture="pinch"><span>🤏</span> قرصة <small>فوق/تحت للتكبير والتصغير</small></li>
+          <li data-gesture="point"><span>☝️</span> إصبع <small>إعادة شرح الدرس</small></li>
+          <li data-gesture="victory"><span>✌️</span> علامة النصر <small>تشغيل الكود</small></li>
+          <li data-gesture="thumbs_up"><span>👍</span> تمام <small>الدرس اللي بعده</small></li>
+        </ul>
+
+        <h2 class="panel-title">رادار الصوت</h2>
+        <div class="meter"><div id="mic-meter-bar" class="meter-bar"></div></div>
+        <h2 class="panel-title">صوت مستر نقراشي</h2>
+        <label for="voice-select" class="sr-only">اختيار الصوت</label>
+        <select id="voice-select" class="voice-select"><option>الصوت الافتراضي</option></select>
+        <p id="transcript" class="transcript" aria-live="polite"></p>
+        <p class="hint-text">دوس 🎤 واتكلم عربي (يفضّل Chrome أو Edge).</p>
+        <button id="btn-reset" class="btn ghost" type="button">إعادة ضبط التقدم</button>
+      </aside>
+    </main>
+  </div>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
